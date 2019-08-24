@@ -1,7 +1,7 @@
 # terraform-publisher
 
 This small project should help to setup an environment with all the tooling needed
-in order to create an `EKS` cluster with `Terraform` together with the ability to use
+in order to create an `EKS` cluster with `terraform` together with the ability to use
 `kubectl`, `helm` and `istio` commands
 
 A docker run container with:
