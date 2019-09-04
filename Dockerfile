@@ -1,5 +1,8 @@
 FROM alpine:3.8
 
+ARG CLOUD_SDK_VERSION=258.0.0
+ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
+
 ENV TERRAFORM_VERSION=0.12.7
 ENV KUBERNETES_VERSION=v1.13.7
 ENV AUTHENTICATOR_VERSION=1.13.7
@@ -19,11 +22,37 @@ RUN apk add wget && \
     apk add --no-cache gnupg && \
     apk add --no-cach libc6-compat
 
+
+# Install gcloud
+ENV PATH /google-cloud-sdk/bin:$PATH
+RUN apk --no-cache add \
+        curl \
+        python \
+        py-crcmod \
+        bash \
+        libc6-compat \
+        openssh-client \
+        git \
+        gnupg
+
+RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${CLOUD_SDK_VERSION}-linux-x86_64.tar.gz && \
+    tar xzf google-cloud-sdk-${CLOUD_SDK_VERSION}-linux-x86_64.tar.gz && \
+    rm google-cloud-sdk-${CLOUD_SDK_VERSION}-linux-x86_64.tar.gz && \
+    gcloud config set core/disable_usage_reporting true && \
+    gcloud config set component_manager/disable_update_check true && \
+    gcloud config set metrics/environment github_docker_image && \
+    gcloud --version
+
 # Install aws-cli
 RUN pip install awscli && \
     apk --purge -v del py-pip && \
     rm /var/cache/apk/* && \
     aws --version
+
+# Install fly for concourse
+RUN curl -o fly http://concourse.algotrade.net/api/v1/cli?arch=amd64&platform=linux && \
+    mv ./fly /usr/local/bin/fly && \
+    chmod 0777 /usr/local/bin/fly
 
 # Install aws-iam-authenticator
 RUN curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${AUTHENTICATOR_VERSION}/2019-06-11/bin/linux/amd64/aws-iam-authenticator && \
